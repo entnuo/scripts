@@ -1,0 +1,15 @@
+#!/bin/sh
+
+case $1 in
+    *.png)
+        feh --bg-fill $1
+        ;;
+    *.jpg)
+        feh --bg-fill $1
+        ;;
+    *.jpeg)
+        feh --bg-fill $1
+        ;;
+esac
+
+mv $HOME/.fehbg $HOME/.scripts/fehbg
