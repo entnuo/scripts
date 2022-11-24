@@ -1,0 +1,5 @@
+#!/bin/sh
+
+# steam low resources mode
+
+steam -no-browser +open steam://open/minigameslist
