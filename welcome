@@ -1,0 +1,19 @@
+#!/bin/bash
+
+time=$(date +%H)
+
+manha=('Bom dia,' 'Good morning,' 'Bonjour,' 'おはよう、')
+tarde=('Boa tarde,' 'Good afternoon,' 'Bonjour,' 'こんにちは、')
+noite=('Boa noite,' 'Good night,' 'Bonsoir,' 'おやすみ、')
+
+rand=$[ $RANDOM % 4 ]
+
+if [[ $time -ge 5 && $time -le 11 ]]; then
+    notify-send -t 10000 "${manha[$rand]} $USER"
+
+elif [[ $time -ge 12 && $time -le 17 ]]; then
+    notify-send -t 10000 "${tarde[$rand]} $USER"
+
+else
+    notify-send -t 10000 "${noite[$rand]} $USER"
+fi
