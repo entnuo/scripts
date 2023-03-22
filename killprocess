@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# stole from debxp https://github.com/debxp
+# and a bit modified by me
+
+#selected=$(ps -eLf | \
+           #awk 'OFS=" " {print $2,$10,$11,$12}' | \
+           #sed -e '1d' -e '/\[\|\/sbin\/init/d' -e 's./usr/lib/\|/usr/sbin/\|/usr/bin/\|/usr/libexec/\|/lib/..g' | \
+selected=$(ps -a -u $USER | \
+           awk 'OFS=" " {print $1,$4}' | \
+           sed '1d' | \
+           dmenu -p "Kill process:")
+
+if [[ ! -z $selected ]]; then
+
+    answer=$(echo -e "Yes\nNo" | \
+            dmenu -p "'$selected' will be killed, are you sure?")
+
+    if [[ $answer == "Yes" ]]; then
+        selpid=$(awk '{print $1}' <<< $selected)
+        kill $selpid && notify-send "$selected" "was killed"
+    fi
+fi
+
+exit 0
