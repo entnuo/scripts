@@ -14,7 +14,7 @@ selected=$(ps -a -u $USER | \
 if [[ ! -z $selected ]]; then
 
     answer=$(echo -e "Yes\nNo" | \
-            dmenu -p "'$selected' will be killed, are you sure?")
+            dmenu -sb '#f7768e' -p "'$selected' will be killed, are you sure?")
 
     if [[ $answer == "Yes" ]]; then
         selpid=$(awk '{print $1}' <<< $selected)
