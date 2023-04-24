@@ -1,6 +1,6 @@
 #!/bin/bash
 
-grep -v "#" emoji_list | dmenu -l 10 | awk '{print $1}' | tr -d '\n' | xclip -selection clipboard;
+grep -v "#" $HOME/.scripts/emoji_list | dmenu -l 10 | awk '{print $1}' | tr -d '\n' | xclip -selection clipboard;
 
 if [ -n "$(xclip -o -selection clipboard)" ]; then
 notify-send "Emoji copied" "$(xclip -o -selection clipboard) successfully copied!" --icon=dialog-information;
