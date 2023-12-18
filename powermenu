@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/dash
 
 # System management menu using dmenu
 # Made by gabrielzschmitz

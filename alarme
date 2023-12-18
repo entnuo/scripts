@@ -1,0 +1,34 @@
+#!/bin/dash
+
+# simple alarm/reminder
+
+set -e # exit on error
+remind=$(printf "Remind me" | dmenu -p "Remind in:")
+title=$(printf "Title?" | dmenu -p "Would you like a title?")
+
+#convert=$(sed 's/s/ second(s)/g;s/m/ minute(s)/g;s/h/ hour(s)/g' | "$remind")
+#convert=$(${remind} | sed 's/s/ second(s)/g;s/m/ minute(s)/g;s/h/ hour(s)/g')
+#convert=$(${remind} | echo "$remind")
+
+case $remind in
+    *s)
+        #sed "${remind} s|s|second\(s\)|"
+        sed -r "${remind} s|s|second\(s\)|"
+        ;;
+    *m)
+        sed 's/m/ minute(s)/'
+        ;;
+    *h)
+        sed 's/h/ hour(s)/'
+        ;;
+esac
+
+
+#notify-send $convert
+
+
+if [ $title = "Title?" ]; then
+    sleep $remind && notify-send -u critical "Reminder:" "$remind has passed"
+else
+    sleep $remind && notify-send -u critical "$title" "$remind has passed"
+fi

@@ -1,0 +1,28 @@
+#!/bin/dash
+
+if [ $# = 1 ]; then
+  case $1 in
+    "inc")
+      amixer -D pulse set Master 2%+ unmute;;
+    "dec")
+      amixer -D pulse set Master 2%- unmute;;
+    "sinc")
+      amixer -D pulse set Master 5%+ unmute;;
+    "sdec")
+      amixer -D pulse set Master 5%- unmute;;
+    "tog")
+      amixer set Master toggle;;
+    *)
+      echo "Invalid option";;
+  esac
+fi
+
+volume=$(pactl list sinks|awk '$1=="Volume:" {print $5}')
+#muted=$(pactl list sinks|awk '$1=="Mute:" {print $2}')
+notify-send -t 1500 -h string:x-canonical-private-synchronous:volume "Volume: $volume" # this -h is working for now
+
+# if [ "$muted" = "yes" ]; then
+#   notify-send "Volume: muted"
+# else
+#   notify-send "Volume: $volume"
+# fi

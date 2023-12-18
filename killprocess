@@ -7,6 +7,7 @@
            #awk 'OFS=" " {print $2,$10,$11,$12}' | \
            #sed -e '1d' -e '/\[\|\/sbin\/init/d' -e 's./usr/lib/\|/usr/sbin/\|/usr/bin/\|/usr/libexec/\|/lib/..g' | \
 selected=$(ps -a -u $USER | \
+#           sort -r | \
            awk 'OFS=" " {print $1,$4}' | \
            sed '1d' | \
            dmenu -sb '#f7768e' -p "Kill process:")
@@ -18,7 +19,7 @@ if [[ ! -z $selected ]]; then
 
     if [[ $answer == "Yes" ]]; then
         selpid=$(awk '{print $1}' <<< $selected)
-        kill $selpid && notify-send "$selected" "was killed"
+        kill -9 $selpid && notify-send "$selected" "was killed"
     fi
 fi
 
