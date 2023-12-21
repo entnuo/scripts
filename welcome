@@ -2,18 +2,31 @@
 
 time=$(date +%H)
 
-manha=('Bom dia,' 'Good morning,' 'Bonjour,' 'おはよう、')
-tarde=('Boa tarde,' 'Good afternoon,' 'Bonjour,' 'こんにちは、')
-noite=('Boa noite,' 'Good night,' 'Bonsoir,' 'おやすみ、')
+manha=("Bom dia," "Dia," "Opa," "Salve," "Good morning," "Mornin'," "Hi there," "Sup," "Bonjour," "Bon matin," "Salut," "Coucou," "おはよう、" "おはようございます、" "こんにちは、")
 
-rand=$[ $RANDOM % 4 ]
+tarde=("Boa tarde," "Suave?" "Good afternoon," "Wassup," "Bonjour," "Salut," "Bonne après-midi," "こんにちは、")
 
-if [[ $time -ge 5 && $time -le 11 ]]; then
-    notify-send -t 10000 "${manha[$rand]} $USER"
+noite=("Boa noite," "Como foi o dia?" "Good night," "All chill?" "Bonsoir," "Comment était ta journée ?" "Tranquille ?" "おやすみ、" "おやすみなさい、" "今日はどうだった？")
 
-elif [[ $time -ge 12 && $time -le 17 ]]; then
-    notify-send -t 10000 "${tarde[$rand]} $USER"
+descanse=("Descanse bem e até amanhã, $USER" "Durma bem e bons sonhos, $USER" "Rest well, $USER" "Sleep tight, $USER" "Repose-toi et beaux rêves, $USER" "Repose-toi bien" "おやすみなさい！よく休んで、カラフルな夢を見てください、$USER" "おやすみ！素晴らしい休息をお過ごしください、$USER")
 
-else
-    notify-send -t 10000 "${noite[$rand]} $USER"
-fi
+#choose random phrase
+random_manha="${manha[$((RANDOM % ${#manha[@]}))]}"
+random_tarde="${tarde[$((RANDOM % ${#tarde[@]}))]}"
+random_noite="${noite[$((RANDOM % ${#noite[@]}))]}"
+random_descanse="${descanse[$((RANDOM % ${#descanse[@]}))]}"
+
+case $time in
+    05|06|07|08|09|10|11)
+        notify-send -h string:x-canonical-private-synchronous:welcome -t 15000 "$random_manha $USER"
+        ;;
+    12|13|14|15|16|17)
+        notify-send -h string:x-canonical-private-synchronous:welcome -t 15000 "$random_tarde $USER"
+        ;;
+    18|19|20|21|22|23)
+        notify-send -h string:x-canonical-private-synchronous:welcome -t 15000 "$random_noite $USER"
+        ;;
+    *)
+        notify-send -h string:x-canonical-private-synchronous:welcome -t 15000 "$random_descanse"
+        ;;
+esac
