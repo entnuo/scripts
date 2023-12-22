@@ -1,0 +1,210 @@
+#!/bin/dash
+
+# simple lemonbar for bspwm
+# using bitmap fonts, so it uses less ram
+# and using xft fork because it has font
+# vertical offset option
+
+PANEL_WM_NAME=bspwm_panel
+
+#check if panel is already running
+if [ $(pgrep -cx lemonbar) -gt 0 ] ; then
+	printf "%s\n" "The panel is already running." >&2
+	exit 1
+fi
+
+# kill remaining xtitle instances
+killall -9 xtitle
+
+# stop process on kill
+trap 'trap - TERM; kill 0' INT TERM QUIT EXIT
+
+# remove fifo if exists; then create a fifo
+FIFO=/tmp/lemon-fifo
+[ -e "$FIFO" ] && rm "$FIFO"
+mkfifo "$FIFO"
+
+# dimensions (-g)
+# my monitor is 1366x768+0+0
+width=$((1366 - 4))
+height=28
+xoff=2
+yoff=2
+
+dim=${width}x${height}+${xoff}+${yoff}
+
+# icons
+cal_icon= # \ue225
+clk_icon= # \ue015
+vol_icon= # \ue05d
+#bri_icon= # \ue10c
+pow_icon= # \ue10d
+#net_icon= # \ue1af
+
+# -------------
+# Click actions
+# -------------
+
+open_pavu () {
+    pavucontrol
+}
+open_cal () {
+    notify-send "$(ncal -bh)"
+}
+# End click actions
+
+# ------
+# center
+# ------
+
+# https://sacules.github.io/post/how-to-lemonbar/
+xtitle -t 50 -sf 'N%s\n' > $FIFO &
+# End center
+
+# ---------
+# left side
+# ---------
+
+# Calendar and time
+get_date () {
+    dt_tm=$(date +"$cal_icon %a %d/%m $clk_icon %H:%M")
+    printf '%s\n' "T""$dt_tm"
+}
+
+# brightness
+# get_brig () {
+#     bright=$(xbacklight -get|sed 's/\.[0-9]*//')
+#     printf "%s%b\n" "B"" $bright"
+# }
+
+get_volume () {
+    vol=$(pactl list sinks|awk '$1=="Volume:" {print $5}')
+    printf '%s\n' "V""$vol_icon $vol"
+    #printf '%s\n' "V""%{A: ${open_pavu} :}$vol_icon $vol %{A}"
+}
+
+# get_net () {
+#     # The following assumes you have 3 interfaces: loopback, ethernet, wifi
+#     read lo int1 int2 << `ip link | sed -n 's/^[0-9]: \(.*\):.*$/\1/p'`
+#     
+#     # iwconfig returns an error code if the interface tested has no wireless
+#     # extensions
+#     if iwconfig $int1 >/dev/null 2>&1; then
+#         wifi=$int1
+#         eth0=$int2
+#     else 
+#         wifi=$int2
+#         eth0=$int1
+#     fi
+#     
+#     # in case you have only one interface, just set it here:
+#     # int=eth0
+#     
+#     # this line will set the variable $int to $eth0 if it's up, and $wifi
+#     # otherwise. I assume that if ethernet is UP, then it has priority over
+#     # wifi. If you have a better idea, please share :)
+#     ip link show $eth0 | grep 'state UP' >/dev/null && int=$eth0 || int=$wif
+# }
+# End left side
+
+# ----------
+# right side
+#-----------
+
+bspc subscribe report > "$FIFO" &
+# End right side
+
+# run each functions in subshell and output to fifo
+# https://raw.githubusercontent.com/onespaceman/dotfiles/158a49ab84b92e9653b476b5964e71d411e49ecc/lemonbar/.config/lemonbar/bar
+while :;do get_date; sleep 59; done > "$FIFO" &
+#while :;do get_brig; sleep 30; done > "$FIFO" &
+while :;do get_volume; sleep 5; done > "$FIFO" &
+
+# --------------
+# the bar itself
+# --------------
+
+while read -r line; do
+    case $line in
+        N*)
+            title="${line#?}";;
+        
+        T*)
+            get_date="${line#?}";;
+        
+        V*)
+            get_volume="${line#?}";;
+
+	W*)
+	    # bspwm's state
+	    wm=
+	    IFS=':'
+	    set -- ${line#?}
+	    while [ $# -gt 0 ] ; do
+	            item=$1
+	            name=${item#?}
+	            case $item in
+	        	    [fFoOuU]*)
+	        		    case $item in
+	        			    f*)
+	        				    # free desktop
+	        				    FG=#707880
+	        				    BG=#191919
+	        				    ;;
+	        			    F*)
+	        				    # active free desktop
+	        				    FG=#191919
+	        				    BG=#ffffff
+	        				    ;;
+	        			    o*)
+	        				    # occupied desktop
+	        				    FG=#ffffff
+	        				    BG=#191919
+	        				    ;;
+	        			    O*)
+	        				    # active occupied desktop
+	        				    FG=#191919
+	        				    BG=#ffffff
+	        				    ;;
+	        			    u*)
+	        				    # urgent desktop
+	        				    FG=#191919
+	        				    BG=#f7768e
+	        				    ;;
+	        			    U*)
+	        				    # active urgent desktop
+	        				    FG=#f7768e
+	        				    BG=#191919
+	        				    ;;
+	        		    esac
+	        		    wm="${wm}%{F${FG}}%{B${BG}}%{A:bspc desktop -f ${name}:} ${name} %{A}%{B-}%{F-}"
+	        		    ;;
+	            esac
+	            shift
+	    done
+	    ;;
+    esac
+
+    printf "%s%s%s\n" \
+           "%{l}${wm}" \
+           "%{c}${title}" \
+           "%{r}${get_volume} ${get_date} %{A:sh ~/.scripts/powermenu:}$pow_icon%{A} "
+
+done < "$FIFO"|lemonbar \
+                     -p \
+                     -B "#191919" \
+                     -F "#ffffff" \
+                     -o -1 \
+                     -f "-*-fixed-medium-r-*-*-14-*-*-*-*-*-*-*" \
+                     -o -2 \
+                     -f '-addy-waffle-medium-r-normal-*-10-100-75-75-m-120-iso10646-1' \
+                     -o 0 \
+                     -f '-gnu-unifont-*-*-*-*-*-*-*-*-*-*-*' \
+                     -n "$PANEL_WM_NAME" \
+                     -g "$dim" \
+                     |sh;
+
+wid=$(xdo id -a "$PANEL_WM_NAME")
+xdo below -t "$(xdo id -N Bspwm -n root|sort|head -n 1)" "$wid"
+
+wait
