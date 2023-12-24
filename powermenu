@@ -4,12 +4,26 @@
 # Made by gabrielzschmitz
 # https://github.com/gabrielzschmitz		  
 
+
+# tried to use waffle for the icons
+# but dmenu doesnt support multiple
+# fonts
+#
+# in case you want the icons:
+#
+# it's working now
+shutdown="  Shutdown"
+reboot="  Restart "
+logout="  Logout  "
+suspend="  Sleep   "
+lock="  Lock    "
+
 # Options
-shutdown="⏻  Shutdown"
-reboot="  Restart "
-logout="  Logout  "
-suspend="⏾  Sleep   "
-lock="  Lock    "
+#shutdown="⏻  Shutdown"
+#reboot="  Restart "
+#logout="  Logout  "
+#suspend="⏾  Sleep   "
+#lock="  Lock    "
 
 # Variables
 options="$shutdown\n$reboot\n$logout\n$suspend\n$lock"

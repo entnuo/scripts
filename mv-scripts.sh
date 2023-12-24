@@ -1,7 +1,7 @@
-#!/bin/bash
+#!/bin/sh
 
-if [ -d ${HOME}/.scripts ]; then
-    cp -r $PWD/* ${HOME}/.scripts
+if [ ! -d ${HOME}/.scripts ]; then
+    mkdir -p -v ${HOME}/.scripts && cp -r $PWD/* ${HOME}/.scripts
 else
-    mkdir ${HOME}/.scripts && cp -r $PWD/* ${HOME}/.scripts
+    cp -r $PWD/* ${HOME}/.scripts
 fi

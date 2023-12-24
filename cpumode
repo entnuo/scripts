@@ -3,6 +3,9 @@
 # i am only took these because my laptop battery is f up
 # you're better of using this instead: https://github.com/AdnanHodzic/auto-cpufreq
 #
+# disabling ondemand works as well (to change to performance)
+# sudo systemctl disable ondemand
+#
 # !THIS HAVE TO BE EXECUTED USING ROOT PRIVILEGES!
 # !MAKE IT EXECUTABLE AND COPY THIS SCRIPT TO /usr/local/sbin !
 
