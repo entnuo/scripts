@@ -23,7 +23,7 @@ case $time in
     12|13|14|15|16|17)
         notify-send -h string:x-canonical-private-synchronous:welcome -t 15000 "$random_tarde $USER"
         ;;
-    18|19|20|21|22|23)
+    18|19|20|21)
         notify-send -h string:x-canonical-private-synchronous:welcome -t 15000 "$random_noite $USER"
         ;;
     *)
