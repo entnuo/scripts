@@ -1,9 +1,10 @@
 #!/bin/dash
+#light: https://github.com/perkele1989/light
 if [ $# = 1 ]; then
     case $1 in
-        "inc") xbacklight -inc 1;;
-        "dec") xbacklight -dec 1;;
+        "inc") light -A 1;;
+        "dec") light -U 1;;
         *) echo "Invalid option";;
     esac
 fi
-notify-send -t 1500 -h string:x-canonical-private-synchronous:luz "Brightness: $(xbacklight -get)" # this -h is working for now
+notify-send -t 1500 -h string:x-canonical-private-synchronous:luz "Brightness: $(light -G)" # this -h is working for now

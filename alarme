@@ -1,34 +1,75 @@
 #!/bin/dash
 
-# simple alarm/reminder
+set -e
 
-set -e # exit on error
-remind=$(printf "Remind me" | dmenu -p "Remind in:")
-title=$(printf "Title?" | dmenu -p "Would you like a title?")
+help() {
+    printf "A simple alarm/reminder written in dash
 
-#convert=$(sed 's/s/ second(s)/g;s/m/ minute(s)/g;s/h/ hour(s)/g' | "$remind")
-#convert=$(${remind} | sed 's/s/ second(s)/g;s/m/ minute(s)/g;s/h/ hour(s)/g')
-#convert=$(${remind} | echo "$remind")
+Alarm:
+\tWorks in the 24 hour format. It'll automatically
+\tadd a extra zero in case you type a single digit value,
+\tboth for hour and minute. In case you an invalid hour/
+\tminute, it'll ask again for a proper value. If everything
+\tare correct, it'll send a notification when it was
+\tprogrammed to set off.
 
-case $remind in
-    *s)
-        #sed "${remind} s|s|second\(s\)|"
-        sed -r "${remind} s|s|second\(s\)|"
+Reminder:
+\tBasically sends a notification after some time. It uses
+\tsleep(1), so you'll have to add 'h', 'm' and 's' after
+\tthe chosen value to set it for hour, minute and second
+\trespectively.
+
+Dependencies: notify-send
+              sleep
+
+-h|--help)\tPrint this message and exit"
+}
+
+[ "$1" = "-h" -o "$1" = "--help" ] && help && exit 0
+
+###
+
+start=$(printf "An alarm to set off in a specific hour\nA reminder after a specific amount of time has passed"| \
+    dmenu -p "What would you like?")
+
+get_hour() {
+    hour=$(printf "Done"|dmenu -p "Which hour?")
+    [ "${hour}" -gt 23 ] && get_hour
+    [ "${#hour}" -ge 3 ] && get_hour
+    [ "${#hour}" = 1 ] && hour=0${hour}
+    return 0
+}
+
+get_min() {
+    min=$(printf "Done"|dmenu -p "Which minute?")
+    [ "${min}" -gt 59 ] && get_min
+    [ "${#min}" -ge 3 ] && get_min
+    [ "${#min}" = 1 ] && min=0${min}
+    return 0
+}
+
+case $start in
+    "An alarm to set off in a specific hour")
+
+        get_hour
+        get_min
+
+        while [ "${hour}:${min}" != $(date +%H:%M) ]; do
+            sleep 59s
+        done
+
+        [ "${hour}:${min}" = $(date +%H:%M) ] && notify-send -u critical "Alarm:" "it's ${hour}:${min} right now."
         ;;
-    *m)
-        sed 's/m/ minute(s)/'
-        ;;
-    *h)
-        sed 's/h/ hour(s)/'
+
+    "A reminder after a specific amount of time has passed")
+
+        remind=$(printf "Remind me" | dmenu -p "Remind in:")
+        title=$(printf "Title?" | dmenu -p "Would you like a title?")
+
+        if [ $title = "Title?" ]; then
+            sleep $remind && notify-send -u critical "Reminder:" "$remind has passed"
+        else
+            sleep $remind && notify-send -u critical "$title" "$remind has passed"
+        fi
         ;;
 esac
-
-
-#notify-send $convert
-
-
-if [ $title = "Title?" ]; then
-    sleep $remind && notify-send -u critical "Reminder:" "$remind has passed"
-else
-    sleep $remind && notify-send -u critical "$title" "$remind has passed"
-fi

@@ -1,0 +1,139 @@
+#!/bin/dash
+
+# a modified version of dbrowse (https://github.com/bitsmanent/scripts/blob/master/src/dbrowse)
+# to open diferent files instead of just printing them to stout
+
+NEWLINE="
+"
+
+fullpath() {
+	name="$(sh -c "echo '$1'")"
+	path="$2"
+	c="$(echo "$name" |cut -b1)"
+
+	if [ "$c" = "/" ]; then
+		full="$name"
+	else
+		full="$path/$name"
+	fi
+	realpath "$full"
+
+}
+
+open_image() {
+    file="$1"
+    nsxiv-rifle "$file" || nsxiv "$file" &
+    pid=$!
+    wait $pid
+    main "$target"
+}
+
+open_video_or_audio() {
+    file="$1"
+    mpv "$file" &
+    pid=$!
+    wait $pid
+    main "$target"
+}
+
+open_file() {
+    file="$1"
+    st -e nvim "$file" &
+    pid=$!
+    wait $pid
+    main "$target"
+}
+
+open_orgfile() {
+    file="$1"
+    emacs "$file" &
+    pid=$!
+    wait $pid
+    main "$target"
+}
+
+open_pdf(){
+    file="$1"
+    zathura "$file" &
+    pid=$!
+    wait $pid
+    main "$target"
+}
+
+open_or_exec() {
+    file="$1"
+    choice=$(printf "Edit it\nExecute it"|dmenu -p "What would you like to do?")
+    case $choice in
+        "Edit it")
+            st -e nvim "$file" &
+            pid=$!
+            wait $pid
+            main "$target"
+            ;;
+        "Execute it")
+            sh "$file" &
+            pid=$!
+            wait $pid
+            main "$target"
+            ;;
+    esac
+}
+
+main() {
+	target="$1"
+	[ -z "$target" ] && target="$(realpath .)"
+	prompt="$2"
+
+	while true; do
+		p="$prompt"
+		[ -z "$p" ] && p="$target"
+		items="$(ls -1a "$target" |grep -v '^\.$' | dmenu -p "$p" -l 25)"
+		ec=$?
+		[ "$ec" -ne 0 ] && exit $ec
+
+		# ignore duplicates
+		items="$(echo "$items" |sort -u)"
+
+
+		nitems=$(echo "$items" |wc -l)
+		if [ $nitems -eq 1 ]; then
+			newt="$(fullpath "$items" "$target")"
+			[ ! -e "$newt" ] && continue
+			if [ -d "$newt" ]; then
+				target="$newt"
+				continue
+			fi
+		fi
+		IFS="$NEWLINE"
+		for item in $items; do
+			item="$(fullpath "$item" "$target")"
+			[ ! -e "$item" ] && continue
+                        file_extension="${item##*.}"
+                        
+                        case "$file_extension" in
+                            jpg|jpeg|png|gif)
+                                open_image "$item"
+                                ;;
+                            mp4|mkv|webm|avi|mp3|aac|ogg|wav)
+                                open_video_or_audio "$item"
+                                ;;
+                            org)
+                                open_orgfile "$item"
+                                ;;
+                            pdf)
+                                open_pdf "$item"
+                                ;;
+                            sh)
+                                open_or_exec "$item"
+                                ;;
+                            *)
+                                [ -x "$item" ] && open_or_exec "$item" || open_file "$item"
+                                ;;
+                        esac
+		done
+		unset IFS
+		exit 0
+	done
+}
+
+main "$@"

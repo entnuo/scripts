@@ -41,18 +41,6 @@ vol_icon= # \ue05d
 pow_icon= # \ue10d
 #net_icon= # \ue1af
 
-# -------------
-# Click actions
-# -------------
-
-open_pavu () {
-    pavucontrol
-}
-open_cal () {
-    notify-send "$(ncal -bh)"
-}
-# End click actions
-
 # ------
 # center
 # ------
@@ -67,7 +55,7 @@ xtitle -t 50 -sf 'N%s\n' > $FIFO &
 
 # Calendar and time
 get_date () {
-    dt_tm=$(date +"$cal_icon %a %d/%m $clk_icon %H:%M")
+    dt_tm=$(LC_ALL=ja_JP.utf8 date +"$cal_icon %Y年 %B %d日 %A $clk_icon %H:%M")
     printf '%s\n' "T""$dt_tm"
 }
 
@@ -79,8 +67,7 @@ get_date () {
 
 get_volume () {
     vol=$(pactl list sinks|awk '$1=="Volume:" {print $5}')
-    printf '%s\n' "V""$vol_icon $vol"
-    #printf '%s\n' "V""%{A: ${open_pavu} :}$vol_icon $vol %{A}"
+    printf '%s\n' "V""%{A:pavucontrol:}$vol_icon $vol %{A}"
 }
 
 # get_net () {
@@ -188,7 +175,7 @@ while read -r line; do
     printf "%s%s%s\n" \
            "%{l}${wm}" \
            "%{c}${title}" \
-           "%{r}${get_volume} ${get_date} %{A:sh ~/.scripts/powermenu:}$pow_icon%{A} "
+           "%{r}${get_volume}${get_date} %{A:sh ~/.scripts/powermenu:}$pow_icon%{A} "
 
 done < "$FIFO"|lemonbar \
                      -p \
