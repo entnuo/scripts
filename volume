@@ -10,6 +10,9 @@ if [ $# = 1 ]; then
       amixer -D pulse set Master 5%+ unmute;;
     "sdec")
       amixer -D pulse set Master 5%- unmute;;
+    # above 100%
+    "abovemax")
+      pactl set-sink-volume @DEFAULT_SINK@ +5%;;
     "tog")
       amixer set Master toggle;;
     *)
@@ -18,11 +21,10 @@ if [ $# = 1 ]; then
 fi
 
 volume=$(pactl list sinks|awk '$1=="Volume:" {print $5}')
-#muted=$(pactl list sinks|awk '$1=="Mute:" {print $2}')
-notify-send -t 1500 -h string:x-canonical-private-synchronous:volume "Volume: $volume" # this -h is working for now
+muted=$(pactl list sinks|awk '$1=="Mute:" {print $2}')
 
-# if [ "$muted" = "yes" ]; then
-#   notify-send "Volume: muted"
-# else
-#   notify-send "Volume: $volume"
-# fi
+if [ "$muted" = "yes" ]; then
+    notify-send "Volume: muted"
+else
+    notify-send -t 1500 -h string:x-canonical-private-synchronous:volume "Volume: $volume" # this -h is working for now
+fi

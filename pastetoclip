@@ -1,0 +1,5 @@
+#!/bin/dash
+
+string=$(printf "Paste to clipboard:                                             " | dmenu)
+
+printf "${string}" | xclip -selection clipboard

@@ -3,11 +3,22 @@
 # a modified version of dbrowse (https://github.com/bitsmanent/scripts/blob/master/src/dbrowse)
 # to open diferent files instead of just printing them to stout
 
+# APPS
+TERMINAL=st
+PDF_VIEWER=zathura
+IMAGE_VIEWER=nsxiv-rifle
+IMAGE_VIEWER_ALT=nsxiv
+WALLPAPER_SETTER=feh
+VIDEO_AUDIO_PLAYER=mpv
+ORG_FILE_HANDLER=emacs # might remove this and emacs altogether
+WINE=wine
+
+
 NEWLINE="
 "
 
 fullpath() {
-	name="$(sh -c "echo '$1'")"
+	name="$1"
 	path="$2"
 	c="$(echo "$name" |cut -b1)"
 
@@ -20,41 +31,46 @@ fullpath() {
 
 }
 
-open_image() {
+open_doc(){
     file="$1"
-    nsxiv-rifle "$file" || nsxiv "$file" &
+    $PDF_VIEWER "$file" &
     pid=$!
     wait $pid
     main "$target"
 }
 
-open_video_or_audio() {
-    file="$1"
-    mpv "$file" &
-    pid=$!
-    wait $pid
-    main "$target"
-}
-
+# TODO better file handling
 open_file() {
     file="$1"
-    st -e nvim "$file" &
+    $TERMINAL -e nvim "$file" &
     pid=$!
     wait $pid
     main "$target"
+}
+
+open_image() {
+    file="$1"
+    choice=$(printf "View\nSet as wallpaper"|dmenu -p "What would you like to do?")
+    case $choice in
+        "View")
+            $IMAGE_VIEWER "$file" || $IMAGE_VIEWER_ALT "$file" &
+            pid=$!
+            wait $pid
+            main "$target"
+            ;;
+        "Set as wallpaper")
+            # or bg-fill ?
+            $WALLPAPER_SETTER --no-fehbg --bg-scale "$file" &
+            pid=$!
+            wait $pid
+            main "$target"
+            ;;
+    esac
 }
 
 open_orgfile() {
     file="$1"
-    emacs "$file" &
-    pid=$!
-    wait $pid
-    main "$target"
-}
-
-open_pdf(){
-    file="$1"
-    zathura "$file" &
+    $ORG_FILE_HANDLER "$file" &
     pid=$!
     wait $pid
     main "$target"
@@ -65,13 +81,21 @@ open_or_exec() {
     choice=$(printf "Edit it\nExecute it"|dmenu -p "What would you like to do?")
     case $choice in
         "Edit it")
-            st -e nvim "$file" &
+            $TERMINAL -e nvim "$file" &
             pid=$!
             wait $pid
             main "$target"
             ;;
         "Execute it")
-            sh "$file" &
+            #sh "$file" &
+            #./"$file" &
+
+            if [ "$(printf "$file" | cut -c1)" = "/" ]; then
+                "$file" &
+            else
+                ./"$file" &
+            fi
+
             pid=$!
             wait $pid
             main "$target"
@@ -79,61 +103,100 @@ open_or_exec() {
     esac
 }
 
+open_video_or_audio() {
+    file="$1"
+    $VIDEO_AUDIO_PLAYER "$file" &
+    pid=$!
+    wait $pid
+    main "$target"
+}
+
+open_wine(){
+    file="$1"
+    choice=$(printf "Execute it\nNevermind"|dmenu -p "What would you like to do?")
+    case $choice in
+        "Execute it")
+            $WINE "$file" &
+            pid=$!
+            wait $pid
+            main $target
+            ;;
+        "Nevermind")
+            main $target
+            ;;
+    esac
+}
+
+open_terminal(){
+    $TERMINAL -e sh -c "cd \"$1\"; exec zsh" &
+    pid=$!
+    wait $pid
+    main "$target"
+}
+
 main() {
-	target="$1"
-	[ -z "$target" ] && target="$(realpath .)"
-	prompt="$2"
+    target="$1"
+    [ -z "$target" ] && target="$(realpath .)"
+    prompt="$2"
 
-	while true; do
-		p="$prompt"
-		[ -z "$p" ] && p="$target"
-		items="$(ls -1a "$target" |grep -v '^\.$' | dmenu -p "$p" -l 25)"
-		ec=$?
-		[ "$ec" -ne 0 ] && exit $ec
+    while true; do
+        p="$prompt"
+        [ -z "$p" ] && p="$target"
+        items=$(ls -1a "$target" | grep -v '^\.$')
+        items=$(printf "%s\n[Open terminal here]" "$items" | dmenu -p "$p" -l 25)
+        ec=$?
+        [ "$ec" -ne 0 ] && exit $ec
 
-		# ignore duplicates
-		items="$(echo "$items" |sort -u)"
+        # ignore duplicates
+        items="$(echo "$items" |sort -u)"
 
+        if [ "$items" = "[Open terminal here]" ]; then
+            open_terminal "$target"
+            continue
+        fi
 
-		nitems=$(echo "$items" |wc -l)
-		if [ $nitems -eq 1 ]; then
-			newt="$(fullpath "$items" "$target")"
-			[ ! -e "$newt" ] && continue
-			if [ -d "$newt" ]; then
-				target="$newt"
-				continue
-			fi
-		fi
-		IFS="$NEWLINE"
-		for item in $items; do
-			item="$(fullpath "$item" "$target")"
-			[ ! -e "$item" ] && continue
-                        file_extension="${item##*.}"
+        nitems=$(echo "$items" |wc -l)
+        if [ $nitems -eq 1 ]; then
+                newt="$(fullpath "$items" "$target")"
+                [ ! -e "$newt" ] && continue
+                if [ -d "$newt" ]; then
+                        target="$newt"
+                        continue
+                fi
+        fi
+        IFS="$NEWLINE"
+        for item in $items; do
+            item="$(fullpath "$item" "$target")"
+            [ ! -e "$item" ] && continue
+            file_extension="${item##*.}"
                         
-                        case "$file_extension" in
-                            jpg|jpeg|png|gif)
-                                open_image "$item"
-                                ;;
-                            mp4|mkv|webm|avi|mp3|aac|ogg|wav)
-                                open_video_or_audio "$item"
-                                ;;
-                            org)
-                                open_orgfile "$item"
-                                ;;
-                            pdf)
-                                open_pdf "$item"
-                                ;;
-                            sh)
-                                open_or_exec "$item"
-                                ;;
-                            *)
-                                [ -x "$item" ] && open_or_exec "$item" || open_file "$item"
-                                ;;
-                        esac
-		done
-		unset IFS
-		exit 0
-	done
+            case "$file_extension" in
+                jpg|jpeg|png|gif)
+                    open_image "$item"
+                    ;;
+                mp4|mkv|webm|avi|mp3|aac|ogg|wav)
+                    open_video_or_audio "$item"
+                    ;;
+                org)
+                    open_orgfile "$item"
+                    ;;
+                pdf|epub)
+                    open_doc "$item"
+                    ;;
+                sh)
+                    open_or_exec "$item"
+                    ;;
+                exe)
+                    open_wine "$item"
+                    ;;
+                *)
+                    [ -x "$item" ] && open_or_exec "$item" || open_file "$item"
+                    ;;
+            esac
+        done
+    unset IFS
+    exit 0
+    done
 }
 
 main "$@"

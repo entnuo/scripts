@@ -1,0 +1,48 @@
+#!/bin/dash
+
+# ☭
+
+# input value for temp gamma and some other shit i forgot the name via dmenu'
+# if empty, use default value
+
+ASKRED=$(printf "Redtime\nRemove" | dmenu -p "What to do?")
+case "$ASKRED" in
+    "Remove") redshift -x && exit 0;;
+    ""|"Redtime") ;;
+esac
+
+
+TEMP=$(printf "DEFAULT" | dmenu -p "Temperature (Default is 3000)")
+case "$TEMP" in
+    ""|"DEFAULT"|*[!0-9]*) TEMP=3000 ;;
+    *) ;;
+esac
+
+GAMMA=$(printf "DEFAULT" | dmenu -p "Gamma (Default is 0.8)")
+case "$GAMMA" in
+    ""|"DEFAULT"|*[!0-9.]*|*.*.*) GAMMA=0.8 ;;
+    *) ;;
+esac
+
+BRIGHTNESS=$(printf "DEFAULT" | dmenu -p "Brightness (Default is 0.8)")
+case "$BRIGHTNESS" in
+    ""|"DEFAULT"|*[!0-9.]*|*.*.*) BRIGHTNESS=0.8 ;;
+    *) ;;
+esac
+
+# source coords from a separate file
+. ${HOME}/.scripts/coords
+
+# redshift options:
+#   -l      location, using coords file
+#   -x      reset mode, remove adjustment from screen
+#   -O      one shot manual mode for temperature
+#   -P      resets gamma ramps before applying new effect (use after -O)
+#   -g      gamma
+#   -b      brigthness
+
+redshift -l ${coords} -x -O ${TEMP} -P -g ${GAMMA} -b ${BRIGHTNESS}
+
+#debug
+
+#printf "%s" "COORDS $coords TEMP $TEMP GAMMA $GAMMA BRIGHT $BRIGHTNESS"

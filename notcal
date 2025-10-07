@@ -1,0 +1,3 @@
+#!/bin/dash
+
+notify-send -t 10000 "$(cal)"

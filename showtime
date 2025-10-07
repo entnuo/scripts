@@ -1,0 +1,5 @@
+#!/bin/dash
+
+hora=$(date +%H:%M)
+
+notify-send "It's ${hora} right now"

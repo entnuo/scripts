@@ -54,6 +54,8 @@ case $start in
         get_hour
         get_min
 
+        notify-send "An alarm will set off at ${hour}:${min}"
+
         while [ "${hour}:${min}" != $(date +%H:%M) ]; do
             sleep 59s
         done

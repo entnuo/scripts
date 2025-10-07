@@ -31,9 +31,9 @@ base() {
 copy() { [ ! -n "$no_copy" ] && [ ! -z "$copy" ] && [ "$cmenu" != "" ] && printf "$cmenu" | xclip -i -selection $copy; }
 
 Clear() {
-	menu=$(printf "Clear" | dmenu -p $cmenu)
-	while [ "$menu" = "Clear" ]; do
-		menu=$(printf "Clear" | dmenu -p 0)
+	menu=$(printf "Clear                                            " | dmenu -p $cmenu)
+	while [ "$menu" = "Clear                                            " ]; do
+		menu=$(printf "Clear                                            " | dmenu -p 0)
 		cmenu=""
 	done
 }

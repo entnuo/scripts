@@ -3,28 +3,57 @@
 # jogandofoddaci downloader e conversor de videos (jfvi)
 # dependencias: yt-dlp, ffmpeg
 
+baixar() {
+    read -p "URL da playlist: " playlist
+    read -p "Qualidade do aúdio (0-10, sendo 0 melhor e 10 pior; sugestão: 8): " qualidade
+    read -p "Começo da playlist (número): " comeco
+    read -p "Fim da playlist ou até onde baixar (número): " termino
+
+    yt-dlp --ignore-errors --format bestaudio --extract-audio --audio-format mp3 --audio-quality $qualidade --output "%(title)s.%(ext)s" --yes-playlist --playlist-start $comeco --playlist-end $termino "$playlist" &&
+    echo -e "\n"; read -n 1 -s -r -p "Nenhum erro ocorreu. Pressione qualquer tecla para continuar"; clear
+}
+
+conv() {
+    read -p "URL da playlist: " playlist
+    read -p "Qualidade do aúdio (0-10, sendo 0 melhor e 10 pior; sugestão: 8): " qualidade
+    read -p "Começo da playlist (número): " comeco
+    read -p "Fim da playlist ou até onde baixar (número): " termino
+    
+    yt-dlp --ignore-errors --format bestaudio --extract-audio --audio-format mp3 --audio-quality $qualidade --output "%(title)s.%(ext)s" --yes-playlist --playlist-start $comeco --playlist-end $termino "$playlist" &&
+    echo -e "\n"; read -n 1 -s -r -p "Nenhum erro ocorreu. Pressione qualquer tecla para continuar"; clear
+}
+
+cortar_intro() {
+    echo -e "Será acrescentado um zero ao início do arquivo, pois o ffmpeg não consegue sobrescrever o arquivo a ser cortado.\n"
+    read -p "Segundos a serem cortados (acrescente um zero caso seja menor que 10, ex: 07): " segundos
+
+    for file in *.ogg; do
+        ffmpeg -ss 00:00:$segundos -i "$file" -c copy "00${file}" -hide_banner;
+    done
+    echo -e "\n"; read -n 1 -s -r -p "Terminado :) Pressione qualquer tecla para continuar"; clear
+}
+
+
+
+
+
+
 read -p "Gostaria de baixar vídeos de uma playlist (S-n): " baixar
 
 case $baixar in
     s | S | "")
-        read -p "URL da playlist: " playlist
-        read -p "Qualidade do aúdio (0-10, sendo 0 melhor e 10 pior; sugestão: 8): " qualidade
-        read -p "Começo da playlist (número): " comeco
-        read -p "Fim da playlist ou até onde baixar (número): " termino
-        
-        yt-dlp --ignore-errors --format bestaudio --extract-audio --audio-format mp3 --audio-quality $qualidade --output "%(title)s.%(ext)s" --yes-playlist --playlist-start $comeco --playlist-end $termino "$playlist" &&
-        echo -e "\n"; read -n 1 -s -r -p "Nenhum erro ocorreu. Pressione qualquer tecla para continuar"; clear;;
+        baixar
+        ;;
     n | *)
-        echo -e "\n";;
+        echo -e "\n"
+        ;;
 esac
 
 read -p "Gostaria de converter mp3 para ogg (S-n): " converter
 case $converter in
     s | S | "")
-        for file in *.mp3; do
-            ffmpeg -i "$file" "${file%*}.ogg" -hide_banner;
-        done
-        echo -e "\n"; read -n 1 -s -r -p "Pressione qualquer tecla para continuar"; clear;;
+        conv
+        ;;
     n | *)
         echo -e "\n";;
 esac
@@ -32,13 +61,9 @@ esac
 read -p "Gostaria de cortar a intro dos vídeos (de aúdios ogg); saiba os segundos a serem cortados (S-n): " cortar
 case $cortar in
     s | S | "")
-        echo -e "Será acrescentado um zero ao início do arquivo, pois o ffmpeg não consegue sobrescrever o arquivo a ser cortado.\n"
-        read -p "Segundos a serem cortados (acrescente um zero caso seja menor que 10, ex: 07): " segundos
-
-        for file in *.ogg; do
-            ffmpeg -ss 00:00:$segundos -i "$file" -c copy "00${file}" -hide_banner;
-        done
-        echo -e "\n"; read -n 1 -s -r -p "Terminado :) Pressione qualquer tecla para continuar"; clear;;
+        cortar_intro
+        ;;
     n | *)
-        echo -e "\n";;
+        echo -e "\n"
+        ;;
 esac

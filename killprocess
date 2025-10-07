@@ -1,9 +1,9 @@
 #!/bin/dash
 
 selected=$(ps -a -u $USER | \
-#           sort -r | \
            awk 'OFS=" " {print $1,$4}' | \
-           sed '1d' | \
+           sed '1,2d' | \
+           # tac | \
            dmenu -sb '#f7768e' -p "Kill process:")
 
 if [ ! -z "$selected" ]; then
@@ -11,9 +11,10 @@ if [ ! -z "$selected" ]; then
     answer=$(printf "Yes\nNo" | \
         dmenu -sb '#f7768e' -p "'$selected' will be killed, are you sure?")
 
-    if [ $answer = "Yes" ]; then
+    if [ "$answer" = "Yes" ]; then
         selpid=$(printf "$selected" | awk '{print $1}')
-        kill -9 "$selpid" && notify-send "$selected" "was killed"
+        printf "$selected" | awk '{print $1}' | xargs -I {} kill -9 {} && \
+        notify-send "'$selected'" "was killed"
     fi
 fi
 

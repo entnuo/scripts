@@ -1,0 +1,49 @@
+#!/bin/dash
+
+# force connection to my bluetooth headphone
+
+isOn=$(bluetoothctl show | grep "Powered:" | awk '{print $2}')
+
+connectHeadphone() {
+    while true; do
+        notify-send -t 15000 -h string:x-canonical-private-synchronous:hpcon "Trying to connect..."
+        bluetoothctl -- connect 41:42:2F:5E:F9:A0
+        #sleep 1
+    
+        # Check if the headphones are connected
+        CONNECTION_STATUS=$(bluetoothctl info 41:42:2F:5E:F9:A0 | grep "Connected: yes")
+        if [ -n "$CONNECTION_STATUS" ]; then
+            notify-send -t 5000 -h string:x-canonical-private-synchronous:hpcon "Connected"
+            break
+        fi
+    done
+}
+
+if [ "$isOn" = "yes" ]; then
+    ask=$(printf "Connect\nTurn off" | dmenu -p "[ON] What would you like to do?")
+
+    case $ask in
+        "Connect")
+            connectHeadphone
+            ;;
+        "Turn off")
+            notify-send "Turning off bluetooth"
+            bluetoothctl power off
+            ;;
+    esac
+fi
+
+if [ "$isOn" = "no" ]; then
+    ask=$(printf "Turn on and connect\nJust turn on" | dmenu -p "[OFF] What would you like to do?")
+
+    case $ask in
+        "Turn on and connect")
+            notify-send "Turning on bluetooth"
+            bluetoothctl power on
+            connectHeadphone
+            ;;
+        "Just turn on")
+            notify-send "Turning on bluetooth"
+            bluetoothctl power on
+    esac
+fi
