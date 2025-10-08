@@ -2,47 +2,43 @@
 
 # ☭
 
-# input value for temp gamma and some other shit i forgot the name via dmenu'
+# this used to be a redshift script, hence the name, now it uses xsct. anyway
+# input value for temp and gamma via dmenu
 # if empty, use default value
 
 ASKRED=$(printf "Redtime\nRemove" | dmenu -p "What to do?")
 case "$ASKRED" in
-    "Remove") redshift -x && exit 0;;
+    "Remove") xsct 0 && exit 0 ;;
     ""|"Redtime") ;;
+    *) exit 1 ;;
 esac
 
-
-TEMP=$(printf "DEFAULT" | dmenu -p "Temperature (Default is 3000)")
+TEMP=$(printf "DEFAULT\nCancel" | dmenu -p "Temperature (default is 3000)")
 case "$TEMP" in
+    "Cancel") exit 0 ;;
     ""|"DEFAULT"|*[!0-9]*) TEMP=3000 ;;
-    *) ;;
+    *) 
+        if [ $TEMP -lt 700 -o $TEMP -gt 15000 ]; then
+            printf "Invalid temperature or way too high, exiting...\n" ; exit 1
+        else
+            TEMP=$TEMP
+        fi
+    ;;
 esac
 
-GAMMA=$(printf "DEFAULT" | dmenu -p "Gamma (Default is 0.8)")
-case "$GAMMA" in
-    ""|"DEFAULT"|*[!0-9.]*|*.*.*) GAMMA=0.8 ;;
-    *) ;;
-esac
-
-BRIGHTNESS=$(printf "DEFAULT" | dmenu -p "Brightness (Default is 0.8)")
+BRIGHTNESS=$(printf "DEFAULT\nCancel" | dmenu -p "Brightness (0-1, default is 1)")
 case "$BRIGHTNESS" in
-    ""|"DEFAULT"|*[!0-9.]*|*.*.*) BRIGHTNESS=0.8 ;;
-    *) ;;
+    "Cancel") exit 0 ;;
+    ""|"DEFAULT"|*[!0-9.]*|*.*.*) BRIGHTNESS=1 ;;
+    *) 
+        if [ $BRIGHTNESS -gt 1 ]; then
+            BRIGHTNESS=0.$BRIGHTNESS
+        elif [ $BRIGHTNESS -le 0 ]; then
+            printf "Less than zero, exiting...\n" ; exit 1
+        else
+            BRIGHTNESS=$BRIGHTNESS
+        fi
+    ;;
 esac
 
-# source coords from a separate file
-. ${HOME}/.scripts/coords
-
-# redshift options:
-#   -l      location, using coords file
-#   -x      reset mode, remove adjustment from screen
-#   -O      one shot manual mode for temperature
-#   -P      resets gamma ramps before applying new effect (use after -O)
-#   -g      gamma
-#   -b      brigthness
-
-redshift -l ${coords} -x -O ${TEMP} -P -g ${GAMMA} -b ${BRIGHTNESS}
-
-#debug
-
-#printf "%s" "COORDS $coords TEMP $TEMP GAMMA $GAMMA BRIGHT $BRIGHTNESS"
+xsct $TEMP $BRIGHTNESS
