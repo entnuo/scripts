@@ -9,14 +9,14 @@
 ASKRED=$(printf "Redtime\nRemove" | dmenu -p "What to do?")
 case "$ASKRED" in
     "Remove") xsct 0 && exit 0 ;;
-    ""|"Redtime") ;;
+    "Redtime") ;;
     *) exit 1 ;;
 esac
 
 TEMP=$(printf "DEFAULT\nCancel" | dmenu -p "Temperature (default is 3000)")
 case "$TEMP" in
-    "Cancel") exit 0 ;;
-    ""|"DEFAULT"|*[!0-9]*) TEMP=3000 ;;
+    "Cancel"|"") exit 0 ;;
+    "DEFAULT"|*[!0-9]*) TEMP=3000 ;;
     *) 
         if [ $TEMP -lt 700 -o $TEMP -gt 15000 ]; then
             printf "Invalid temperature or way too high, exiting...\n" ; exit 1
@@ -28,8 +28,8 @@ esac
 
 BRIGHTNESS=$(printf "DEFAULT\nCancel" | dmenu -p "Brightness (0-1, default is 1)")
 case "$BRIGHTNESS" in
-    "Cancel") exit 0 ;;
-    ""|"DEFAULT"|*[!0-9.]*|*.*.*) BRIGHTNESS=1 ;;
+    "Cancel"|"") exit 0 ;;
+    "DEFAULT"|*[!0-9.]*|*.*.*) BRIGHTNESS=1 ;;
     *) 
         if [ $BRIGHTNESS -gt 1 ]; then
             BRIGHTNESS=0.$BRIGHTNESS
