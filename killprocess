@@ -13,7 +13,7 @@ if [ ! -z "$selected" ]; then
 
     if [ "$answer" = "Yes" ]; then
         selpid=$(printf "$selected" | awk '{print $1}')
-        printf "$selected" | awk '{print $1}' | xargs -I {} kill -9 {} && \
+        printf "$selected" | awk '{print $1}' | xargs -I {} kill -15 {} && \
         notify-send "'$selected'" "was killed"
     fi
 fi
