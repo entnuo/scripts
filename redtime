@@ -19,7 +19,7 @@ case "$TEMP" in
     "DEFAULT"|*[!0-9]*) TEMP=3000 ;;
     *) 
         if [ $TEMP -lt 700 -o $TEMP -gt 15000 ]; then
-            printf "Invalid temperature or way too high, exiting...\n" ; exit 1
+            printf "Invalid temperature, exiting...\n" ; exit 1
         else
             TEMP=$TEMP
         fi
