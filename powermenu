@@ -12,11 +12,11 @@
 # in case you want the icons:
 #
 # it's working now
-shutdown="  Shutdown"
-reboot="  Restart "
-logout="  Logout  "
-suspend="  Sleep   "
-lock="  Lock    "
+shutdown="Shutdown"
+reboot="Restart"
+logout="Logout"
+#suspend="  Sleep   "
+lock="Lock"
 
 # Options
 #shutdown="⏻  Shutdown"
@@ -26,29 +26,29 @@ lock="  Lock    "
 #lock="  Lock    "
 
 # Variables
-options="$shutdown\n$reboot\n$logout\n$suspend\n$lock"
+options="$shutdown\n$reboot\n$logout\n$lock"
 
 # Choices
 chosen="$(printf "$options" | dmenu -l 5)"
 case $chosen in
     "$shutdown")
-		notify-send "⏻ Turning off the machine..." &
-                sleep 1  && systemctl poweroff
+		notify-send "Turning off the machine..." &
+                sleep 1  && loginctl poweroff
         ;;
     "$reboot")
-		notify-send " Restarting the machine..." &
-                sleep 1  && systemctl reboot
+		notify-send "Restarting the machine..." &
+                sleep 1  && loginctl reboot
 	;;
     "$logout")
-		notify-send " Login out of the system..." &
+		notify-send "Login out of the system..." &
                 sleep 1  && loginctl terminate-session $XDG_SESSION_ID
 	;;
-    "$suspend")
-		notify-send "⏾ Putting the system to sleep..." &
-                sleep 1  && systemctl suspend
-        ;;
+    # "$suspend")
+	# 	notify-send "Putting the system to sleep..." &
+    #             sleep 1  && systemctl suspend
+    #     ;;
     "$lock")
-		notify-send " Locking the system..." &
-                sleep 5.1 && betterlockscreen -l blur
+		notify-send "Locking the system..." &
+                sleep 5.1 && slock
         ;;
 esac
