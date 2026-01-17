@@ -3,18 +3,15 @@
 if [ $# = 1 ]; then
   case $1 in
     "inc")
-      amixer -D pulse set Master 2%+ unmute;;
+        wpctl set-volume @DEFAULT_SINK@ 2%+ ;;
     "dec")
-      amixer -D pulse set Master 2%- unmute;;
+        wpctl set-volume @DEFAULT_SINK@ 2%- ;;
     "sinc")
-      amixer -D pulse set Master 5%+ unmute;;
+        wpctl set-volume @DEFAULT_SINK@ 5%+ ;;
     "sdec")
-      amixer -D pulse set Master 5%- unmute;;
-    # above 100%
-    "abovemax")
-      pactl set-sink-volume @DEFAULT_SINK@ +5%;;
+        wpctl set-volume @DEFAULT_SINK@ 5%- ;;
     "tog")
-      amixer set Master toggle;;
+        wpctl set-mute @DEFAULT_SINK@ toggle ;;
     *)
       echo "Invalid option";;
   esac
@@ -24,7 +21,7 @@ volume=$(pactl list sinks|awk '$1=="Volume:" {print $5}')
 muted=$(pactl list sinks|awk '$1=="Mute:" {print $2}')
 
 if [ "$muted" = "yes" ]; then
-    notify-send "Volume: muted"
+    notify-send -t 1500 -h string:x-canonical-private-synchronous:volume "Volume: muted"
 else
     notify-send -t 1500 -h string:x-canonical-private-synchronous:volume "Volume: $volume" # this -h is working for now
 fi
